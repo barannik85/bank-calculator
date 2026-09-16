@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Банківський калькулятор</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter & Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -115,7 +113,7 @@
         Сума, яку треба переказати отримувачу
       </div>
       <div id="mainResultValue" class="text-3xl sm:text-4xl md:text-5xl font-bold text-accent tracking-tight font-sans">
-        11 775,63 €
+        0,00 €
       </div>
     </div>
 
@@ -123,27 +121,27 @@
     <div class="pt-4 border-t border-[#2d2c27] space-y-2.5 text-xs sm:text-sm">
       <div class="flex justify-between items-center text-[#c2c0b6]">
         <span>Сума переказу з вашого рахунку</span>
-        <span id="rowTransfer" class="font-medium text-white">11 775,63 €</span>
+        <span id="rowTransfer" class="font-medium text-white">0,00 €</span>
       </div>
       
       <div class="flex justify-between items-center text-[#8a8880] pl-2 border-l border-[#2d2c27]">
         <span>– комісія банку</span>
-        <span id="rowBankFee" class="font-medium text-[#8a8880]">– 23,55 €</span>
+        <span id="rowBankFee" class="font-medium text-[#8a8880]">– 0,00 €</span>
       </div>
 
       <div class="flex justify-between items-center text-[#c2c0b6] pt-1">
         <span>= зараховано отримувачу</span>
-        <span id="rowRecipientNet" class="font-medium text-white">11 752,08 €</span>
+        <span id="rowRecipientNet" class="font-medium text-white">0,00 €</span>
       </div>
 
       <div class="flex justify-between items-center text-[#8a8880] pl-2 border-l border-[#2d2c27]">
         <span>– комісія отримувача</span>
-        <span id="rowRecipientFee" class="font-medium text-[#8a8880]">– 470,08 €</span>
+        <span id="rowRecipientFee" class="font-medium text-[#8a8880]">– 0,00 €</span>
       </div>
 
       <div class="flex justify-between items-center text-white font-medium pt-1">
         <span>= видано готівкою</span>
-        <span id="rowCash" class="font-semibold text-white">11 282,00 €</span>
+        <span id="rowCash" class="font-semibold text-white">0,00 €</span>
       </div>
     </div>
 
@@ -211,7 +209,7 @@
       }
     }
 
-    // Calculation core
+    // Calculation logic
     function calculate() {
       const inputVal = parseFloat(document.getElementById('mainInput').value) || 0;
       const recVal = parseFloat(document.getElementById('recVal').value) || 0;
@@ -236,7 +234,7 @@
         }
         recipientFee = recipientNet - cashAmt;
 
-        // Step 2: Calculate Bank Transfer amount (deducted from transfer amount prior to arrival)
+        // Step 2: Calculate Bank Transfer amount
         if (bankType === 'pct') {
           const factor = (100 - bankVal) / 100;
           transferAmt = factor > 0 ? recipientNet / factor : 0;
@@ -250,7 +248,7 @@
         // Reverse calculation (Target: Sent Amount)
         transferAmt = inputVal;
 
-        // Step 1: Bank deducts fee from sent transfer
+        // Step 1: Bank deducts fee
         if (bankType === 'pct') {
           bankFee = transferAmt * (bankVal / 100);
         } else {
