@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full bg-[#121210]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Банківський калькулятор</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter & Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            darkbg: '#121210',
+            cardbg: '#1a1917',
+            inputbg: '#1f1e1b',
+            accent: '#34d399',
+            accentHover: '#10b981',
+            borderDark: '#2a2925',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Hide spin buttons for Firefox */
+    input[type='number'] {
+      -moz-appearance: textfield;
+    }
+    /* Hide spin buttons for Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col justify-center items-center font-sans antialiased text-[#e2e2df] p-4 sm:p-6 md:p-10 select-none">
+
+  <main class="w-full max-w-2xl bg-darkbg rounded-xl py-2 sm:py-4 space-y-7">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-baseline border-b border-[#2d2c27] pb-4">
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-white">Банківський калькулятор</h1>
+      <span id="currentDate" class="text-xs sm:text-sm text-[#8a8880] font-light">16 вересня 2026 р.</span>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="grid grid-cols-2 text-center border-b border-[#2d2c27] text-sm font-medium">
+      <button id="tabToPay" onclick="setMode('toPay')" class="pb-3 border-b-2 border-accent text-white transition-all">
+        Скільки переказати
+      </button>
+      <button id="tabToReceive" onclick="setMode('toReceive')" class="pb-3 border-b-2 border-transparent text-[#8a8880] hover:text-white transition-all">
+        Скільки дійде готівкою
+      </button>
+    </nav>
+
+    <!-- Inputs Section -->
+    <div class="space-y-5">
+      
+      <!-- Primary Target Input -->
+      <div class="space-y-2">
+        <label id="mainInputLabel" for="mainInput" class="block text-xs sm:text-sm text-[#a3a096]">
+          Бажана сума готівкою (EUR)
+        </label>
+        <div class="relative">
+          <input type="number" id="mainInput" value="11282" step="any" min="0" placeholder="0"
+            class="w-full bg-[#1a1917] border border-[#2d2c27] focus:border-[#42403b] rounded-md px-4 py-3 text-xl sm:text-2xl font-medium text-white outline-none transition-colors">
+        </div>
+      </div>
+
+      <!-- Recipient Commission -->
+      <div class="space-y-2">
+        <label class="block text-xs sm:text-sm text-[#a3a096]">
+          Комісія отримувача — знімається з суми, що прийшла на їхній рахунок
+        </label>
+        <div class="flex gap-2">
+          <input type="number" id="recVal" value="4" step="any" min="0" placeholder="0"
+            class="w-full bg-[#1a1917] border border-[#2d2c27] focus:border-[#42403b] rounded-md px-4 py-2.5 text-base sm:text-lg text-white outline-none transition-colors">
+          <div class="flex bg-[#1a1917] border border-[#2d2c27] rounded-md overflow-hidden shrink-0">
+            <button id="recTypePct" onclick="setRecType('pct')" class="px-3 sm:px-4 py-2 text-xs font-semibold bg-accent text-[#0d281e] transition-colors">%</button>
+            <button id="recTypeFix" onclick="setRecType('fix')" class="px-3 sm:px-4 py-2 text-xs font-semibold text-[#8a8880] hover:text-white transition-colors">EUR</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Commission -->
+      <div class="space-y-2">
+        <label class="block text-xs sm:text-sm text-[#a3a096]">
+          Комісія банку — знімається з суми переказу до зарахування отримувачу
+        </label>
+        <div class="flex gap-2">
+          <input type="number" id="bankVal" value="0.2" step="any" min="0" placeholder="0"
+            class="w-full bg-[#1a1917] border border-[#2d2c27] focus:border-[#42403b] rounded-md px-4 py-2.5 text-base sm:text-lg text-white outline-none transition-colors">
+          <div class="flex bg-[#1a1917] border border-[#2d2c27] rounded-md overflow-hidden shrink-0">
+            <button id="bankTypePct" onclick="setBankType('pct')" class="px-3 sm:px-4 py-2 text-xs font-semibold bg-accent text-[#0d281e] transition-colors">%</button>
+            <button id="bankTypeFix" onclick="setBankType('fix')" class="px-3 sm:px-4 py-2 text-xs font-semibold text-[#8a8880] hover:text-white transition-colors">EUR</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Output Result -->
+    <div class="pt-3 border-t border-[#2d2c27]">
+      <div id="mainResultTitle" class="text-xs sm:text-sm text-[#a3a096] mb-2">
+        Сума, яку треба переказати отримувачу
+      </div>
+      <div id="mainResultValue" class="text-3xl sm:text-4xl md:text-5xl font-bold text-accent tracking-tight font-sans">
+        11 775,63 €
+      </div>
+    </div>
+
+    <!-- Breakdown List -->
+    <div class="pt-4 border-t border-[#2d2c27] space-y-2.5 text-xs sm:text-sm">
+      <div class="flex justify-between items-center text-[#c2c0b6]">
+        <span>Сума переказу з вашого рахунку</span>
+        <span id="rowTransfer" class="font-medium text-white">11 775,63 €</span>
+      </div>
+      
+      <div class="flex justify-between items-center text-[#8a8880] pl-2 border-l border-[#2d2c27]">
+        <span>– комісія банку</span>
+        <span id="rowBankFee" class="font-medium text-[#8a8880]">– 23,55 €</span>
+      </div>
+
+      <div class="flex justify-between items-center text-[#c2c0b6] pt-1">
+        <span>= зараховано отримувачу</span>
+        <span id="rowRecipientNet" class="font-medium text-white">11 752,08 €</span>
+      </div>
+
+      <div class="flex justify-between items-center text-[#8a8880] pl-2 border-l border-[#2d2c27]">
+        <span>– комісія отримувача</span>
+        <span id="rowRecipientFee" class="font-medium text-[#8a8880]">– 470,08 €</span>
+      </div>
+
+      <div class="flex justify-between items-center text-white font-medium pt-1">
+        <span>= видано готівкою</span>
+        <span id="rowCash" class="font-semibold text-white">11 282,00 €</span>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // App State
+    let mode = 'toPay'; // 'toPay' | 'toReceive'
+    let recType = 'pct'; // 'pct' | 'fix'
+    let bankType = 'pct'; // 'pct' | 'fix'
+
+    // Formatter
+    const formatEUR = (num) => {
+      const formatted = new Intl.NumberFormat('uk-UA', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(num || 0);
+      return `${formatted} €`;
+    };
+
+    // Mode Toggle
+    function setMode(newMode) {
+      mode = newMode;
+      const tabToPay = document.getElementById('tabToPay');
+      const tabToReceive = document.getElementById('tabToReceive');
+      const label = document.getElementById('mainInputLabel');
+      const mainResultTitle = document.getElementById('mainResultTitle');
+
+      if (mode === 'toPay') {
+        tabToPay.className = 'pb-3 border-b-2 border-accent text-white transition-all';
+        tabToReceive.className = 'pb-3 border-b-2 border-transparent text-[#8a8880] hover:text-white transition-all';
+        label.innerText = 'Бажана сума готівкою (EUR)';
+        mainResultTitle.innerText = 'Сума, яку треба переказати отримувачу';
+      } else {
+        tabToReceive.className = 'pb-3 border-b-2 border-accent text-white transition-all';
+        tabToPay.className = 'pb-3 border-b-2 border-transparent text-[#8a8880] hover:text-white transition-all';
+        label.innerText = 'Сума переказу з рахунку (EUR)';
+        mainResultTitle.innerText = 'Сума, яку отримаєте готівкою';
+      }
+      calculate();
+    }
+
+    // Toggle Commission Types
+    function setRecType(type) {
+      recType = type;
+      updateToggleUI('recTypePct', 'recTypeFix', type);
+      calculate();
+    }
+
+    function setBankType(type) {
+      bankType = type;
+      updateToggleUI('bankTypePct', 'bankTypeFix', type);
+      calculate();
+    }
+
+    function updateToggleUI(pctId, fixId, activeType) {
+      const pctBtn = document.getElementById(pctId);
+      const fixBtn = document.getElementById(fixId);
+      if (activeType === 'pct') {
+        pctBtn.className = 'px-3 sm:px-4 py-2 text-xs font-semibold bg-accent text-[#0d281e] transition-colors';
+        fixBtn.className = 'px-3 sm:px-4 py-2 text-xs font-semibold text-[#8a8880] hover:text-white transition-colors';
+      } else {
+        fixBtn.className = 'px-3 sm:px-4 py-2 text-xs font-semibold bg-accent text-[#0d281e] transition-colors';
+        pctBtn.className = 'px-3 sm:px-4 py-2 text-xs font-semibold text-[#8a8880] hover:text-white transition-colors';
+      }
+    }
+
+    // Calculation core
+    function calculate() {
+      const inputVal = parseFloat(document.getElementById('mainInput').value) || 0;
+      const recVal = parseFloat(document.getElementById('recVal').value) || 0;
+      const bankVal = parseFloat(document.getElementById('bankVal').value) || 0;
+
+      let transferAmt = 0;
+      let bankFee = 0;
+      let recipientNet = 0;
+      let recipientFee = 0;
+      let cashAmt = 0;
+
+      if (mode === 'toPay') {
+        // Direct calculation (Target: Cash Amount)
+        cashAmt = inputVal;
+
+        // Step 1: Calculate recipient net received amount
+        if (recType === 'pct') {
+          const factor = (100 - recVal) / 100;
+          recipientNet = factor > 0 ? cashAmt / factor : 0;
+        } else {
+          recipientNet = cashAmt + recVal;
+        }
+        recipientFee = recipientNet - cashAmt;
+
+        // Step 2: Calculate Bank Transfer amount (deducted from transfer amount prior to arrival)
+        if (bankType === 'pct') {
+          const factor = (100 - bankVal) / 100;
+          transferAmt = factor > 0 ? recipientNet / factor : 0;
+          bankFee = transferAmt - recipientNet;
+        } else {
+          bankFee = bankVal;
+          transferAmt = recipientNet + bankFee;
+        }
+
+      } else {
+        // Reverse calculation (Target: Sent Amount)
+        transferAmt = inputVal;
+
+        // Step 1: Bank deducts fee from sent transfer
+        if (bankType === 'pct') {
+          bankFee = transferAmt * (bankVal / 100);
+        } else {
+          bankFee = bankVal;
+        }
+        recipientNet = Math.max(0, transferAmt - bankFee);
+
+        // Step 2: Recipient deducts commission
+        if (recType === 'pct') {
+          recipientFee = recipientNet * (recVal / 100);
+        } else {
+          recipientFee = recVal;
+        }
+        cashAmt = Math.max(0, recipientNet - recipientFee);
+      }
+
+      // Render Outputs
+      if (mode === 'toPay') {
+        document.getElementById('mainResultValue').innerText = formatEUR(transferAmt);
+      } else {
+        document.getElementById('mainResultValue').innerText = formatEUR(cashAmt);
+      }
+
+      document.getElementById('rowTransfer').innerText = formatEUR(transferAmt);
+      document.getElementById('rowBankFee').innerText = `– ${formatEUR(bankFee)}`;
+      document.getElementById('rowRecipientNet').innerText = formatEUR(recipientNet);
+      document.getElementById('rowRecipientFee').innerText = `– ${formatEUR(recipientFee)}`;
+      document.getElementById('rowCash').innerText = formatEUR(cashAmt);
+    }
+
+    // Attach listeners
+    document.getElementById('mainInput').addEventListener('input', calculate);
+    document.getElementById('recVal').addEventListener('input', calculate);
+    document.getElementById('bankVal').addEventListener('input', calculate);
+
+    // Initial Date format
+    const updateDate = () => {
+      const now = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('currentDate').innerText = now.toLocaleDateString('uk-UA', options) + ' р.';
+    };
+
+    window.onload = () => {
+      updateDate();
+      calculate();
+    };
+  </script>
+</body>
+</html>
